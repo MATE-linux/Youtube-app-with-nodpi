@@ -25,12 +25,11 @@ jobs:
           pip install --upgrade nuitka
           pip install PyQt5 PyQtWebEngine
 
-      - name: Prepare Qt paths
-        id: qt_paths
+      - name: Verify Qt installation
         shell: cmd
         run: |
-          python -c "import PyQt5.QtCore; print('Qt prefix path:', PyQt5.QtCore.QLibraryInfo.location(PyQt5.QtCore.QLibraryInfo.PrefixPath))"
-          python -c "import os, PyQt5.QtCore; qt_plugins = PyQt5.QtCore.QLibraryInfo.location(PyQt5.QtCore.QLibraryInfo.PluginsPath); print('Qt plugins path:', qt_plugins); os.makedirs('qt_resources', exist_ok=True); open('qt_resources/qt_plugins_path.txt', 'w').write(qt_plugins)"
+          python -c "from PyQt5.QtWebEngineWidgets import QWebEngineView; print('QtWebEngine available')"
+          python -c "import PyQt5.QtWebEngineProcess; print('QtWebEngineProcess available at:', PyQt5.QtWebEngineProcess.__file__)"
 
       - name: Compile with Nuitka
         shell: cmd
@@ -42,10 +41,10 @@ jobs:
           --output-dir=dist ^
           --enable-plugin=pyqt5 ^
           --windows-icon-from-ico=youunlock.ico ^
-          --include-package=PyQt5.QtWebEngineWidgets ^
-          --include-package=PyQt5.QtWebEngineCore ^
-          --include-package=PyQt5.QtWebEngineProcess ^
-          --include-data-file=qt_resources/qt_plugins_path.txt=qt_resources/qt_plugins_path.txt ^
+          --include-qt-plugins=webengine ^
+          --include-data-file=%PYTHONPATH%\Lib\site-packages\PyQt5\Qt\bin\QtWebEngineProcess.exe=PyQt5/Qt/bin/ ^
+          --include-data-dir=%PYTHONPATH%\Lib\site-packages\PyQt5\Qt\resources=PyQt5/Qt/resources ^
+          --include-data-dir=%PYTHONPATH%\Lib\site-packages\PyQt5\Qt\translations=PyQt5/Qt/translations ^
           --assume-yes-for-downloads ^
           unlock.py
 
@@ -53,7 +52,7 @@ jobs:
         shell: cmd
         run: |
           if exist dist\unlock.exe (
-            echo "Build successful! File size:"
+            echo "Build successful! File info:"
             dir dist\unlock.exe
           ) else (
             echo "Build failed!"
