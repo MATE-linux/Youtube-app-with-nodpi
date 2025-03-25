@@ -54,7 +54,6 @@ jobs:
           --noinclude-setuptools-mode=nofollow ^
           --enable-plugin=upx ^
           --nofollow-import-to=unnecessary_module ^
-          --enable-cache ^
           --jobs=4 ^
           --lto=yes ^
           unlock.py
