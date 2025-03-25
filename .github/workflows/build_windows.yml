@@ -1,4 +1,3 @@
-
 name: Build Windows with Nuitka
 
 on:
@@ -26,11 +25,14 @@ jobs:
           pip install --upgrade nuitka
           pip install PyQt5 PyQtWebEngine
 
-      - name: Verify Qt installation
+      - name: Get Qt paths
+        id: qt_paths
         shell: cmd
         run: |
-          python -c "from PyQt5.QtWebEngineWidgets import QWebEngineView; print('QtWebEngine available')"
-          python -c "import os, PyQt5; print('Qt bin path:', os.path.join(os.path.dirname(PyQt5.__file__), 'Qt', 'bin'))"
+          python -c "import os, PyQt5; qt_path = os.path.join(os.path.dirname(PyQt5.__file__), 'Qt'); print('Qt path:', qt_path)"
+          python -c "import os, PyQt5; qt_bin = os.path.join(os.path.dirname(PyQt5.__file__), 'Qt', 'bin'); print('Qt bin path:', qt_bin)"
+          python -c "import os, PyQt5; qt_res = os.path.join(os.path.dirname(PyQt5.__file__), 'Qt', 'resources'); print('Qt resources path:', qt_res)"
+          python -c "import os, PyQt5; qt_trans = os.path.join(os.path.dirname(PyQt5.__file__), 'Qt', 'translations'); print('Qt translations path:', qt_trans)"
 
       - name: Compile with Nuitka
         shell: cmd
@@ -43,9 +45,9 @@ jobs:
           --enable-plugin=pyqt5 ^
           --windows-icon-from-ico=youunlock.ico ^
           --include-qt-plugins=webengine ^
-          --include-data-dir=%PYTHONPATH%\Lib\site-packages\PyQt5\Qt\bin=PyQt5/Qt/bin ^
-          --include-data-dir=%PYTHONPATH%\Lib\site-packages\PyQt5\Qt\resources=PyQt5/Qt/resources ^
-          --include-data-dir=%PYTHONPATH%\Lib\site-packages\PyQt5\Qt\translations=PyQt5/Qt/translations ^
+          --include-data-dir="%PYTHONPATH%\Lib\site-packages\PyQt5\Qt\bin"="PyQt5/Qt/bin" ^
+          --include-data-dir="%PYTHONPATH%\Lib\site-packages\PyQt5\Qt\resources"="PyQt5/Qt/resources" ^
+          --include-data-dir="%PYTHONPATH%\Lib\site-packages\PyQt5\Qt\translations"="PyQt5/Qt/translations" ^
           --assume-yes-for-downloads ^
           unlock.py
 
@@ -53,8 +55,8 @@ jobs:
         shell: cmd
         run: |
           if exist dist\unlock.exe (
-            echo "Build successful! File info:"
-            dir dist\unlock.exe
+            echo "Build successful!"
+            dir dist
           ) else (
             echo "Build failed!"
             exit 1
@@ -64,4 +66,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-build
-          path: dist\unlock.exe
+          path: dist\
