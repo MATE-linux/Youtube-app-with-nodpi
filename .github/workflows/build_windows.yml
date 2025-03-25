@@ -1,3 +1,4 @@
+
 name: Build Windows with Nuitka
 
 on:
@@ -29,7 +30,7 @@ jobs:
         shell: cmd
         run: |
           python -c "from PyQt5.QtWebEngineWidgets import QWebEngineView; print('QtWebEngine available')"
-          python -c "import PyQt5.QtWebEngineProcess; print('QtWebEngineProcess available at:', PyQt5.QtWebEngineProcess.__file__)"
+          python -c "import os, PyQt5; print('Qt bin path:', os.path.join(os.path.dirname(PyQt5.__file__), 'Qt', 'bin'))"
 
       - name: Compile with Nuitka
         shell: cmd
@@ -42,7 +43,7 @@ jobs:
           --enable-plugin=pyqt5 ^
           --windows-icon-from-ico=youunlock.ico ^
           --include-qt-plugins=webengine ^
-          --include-data-file=%PYTHONPATH%\Lib\site-packages\PyQt5\Qt\bin\QtWebEngineProcess.exe=PyQt5/Qt/bin/ ^
+          --include-data-dir=%PYTHONPATH%\Lib\site-packages\PyQt5\Qt\bin=PyQt5/Qt/bin ^
           --include-data-dir=%PYTHONPATH%\Lib\site-packages\PyQt5\Qt\resources=PyQt5/Qt/resources ^
           --include-data-dir=%PYTHONPATH%\Lib\site-packages\PyQt5\Qt\translations=PyQt5/Qt/translations ^
           --assume-yes-for-downloads ^
