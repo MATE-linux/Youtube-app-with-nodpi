@@ -46,9 +46,8 @@ jobs:
           --enable-plugin=pyqt5 ^
           --windows-icon-from-ico=youunlock.ico ^
           --include-qt-plugins=webengine ^
-          --include-data-dir=%QT_PATH%\bin=%DEST_DIR%\bin ^
-          --include-data-dir=%QT_PATH%\resources=%DEST_DIR%\resources ^
-          --include-data-dir=%QT_PATH%\translations=%DEST_DIR%\translations ^
+          --include-package=PyQt5.QtWebEngineWidgets ^
+          --include-package=PyQt5.QtWebEngineCore ^
           --assume-yes-for-downloads ^
           --show-progress ^
           --show-scons ^
