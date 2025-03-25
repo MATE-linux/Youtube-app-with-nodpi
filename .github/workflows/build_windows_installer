@@ -1,0 +1,100 @@
+name: Build Windows with Nuitka
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+          
+      - name: Install dependencies
+        shell: cmd
+        run: |
+          pip install --upgrade nuitka
+          pip install PyQt5 PyQtWebEngine
+          choco install innosetup -y
+
+      - name: Get Python and Qt paths
+        id: get_paths
+        shell: cmd
+        run: |
+          python -c "import sys; print(f'PYTHON_DIR={sys.prefix}')" >> %GITHUB_OUTPUT%
+          python -c "import PyQt5, os; print(f'QT_DIR={os.path.dirname(PyQt5.__file__)}')" >> %GITHUB_OUTPUT%
+
+      - name: Compile with Nuitka
+        shell: cmd
+        run: |
+          set QT_PATH=%{{ steps.get_paths.outputs.QT_DIR }}\Qt
+          set DEST_DIR=PyQt5\Qt
+          
+          python -m nuitka ^
+          --standalone ^
+          --onefile ^
+          --windows-console-mode=disable ^
+          --output-dir=dist ^
+          --enable-plugin=pyqt5 ^
+          --windows-icon-from-ico=youunlock.ico ^
+          --include-package=PyQt5.QtWebEngineWidgets ^
+          --include-package=PyQt5.QtWebEngineCore ^
+          --assume-yes-for-downloads ^
+          --show-progress ^
+          --show-scons ^
+          --noinclude-pytest-mode ^
+          --noinclude-setuptools-mode ^
+          --enable-plugin=upx ^
+          --nofollow-import-to=unnecessary_module ^
+          --enable-cache ^
+          --show-modules --recurse-all ^
+          unlock.py
+
+      - name: Verify build
+        shell: cmd
+        run: |
+          if exist dist\unlock.exe (
+            echo "Build successful!"
+            dir dist
+          ) else (
+            echo "Build failed!"
+            exit 1
+          )
+
+      - name: Create installer script
+      run: |
+        @echo [Setup] > installer.iss
+        @echo AppName=MyApp >> installer.iss
+        @echo AppVersion=1.0.1 >> installer.iss
+        @echo SetupIconFile=youunlock.ico
+        @echo DefaultDirName={pf}\Youtubedpi >> installer.iss
+        @echo DefaultGroupName=Youtubedpi >> installer.iss
+        @echo OutputDir=installer >> installer.iss
+        @echo OutputBaseFilename=Youtube-app-with-nodpi-setup-1.0.1 >> installer.iss
+        @echo Compression=lzma >> installer.iss
+        @echo SolidCompression=yes >> installer.iss
+        @echo [Files] >> installer.iss
+        @echo Source: "dist\unlock.exe"; DestDir: "{app}"; Flags: ignoreversion >> installer.iss
+        @echo Source: "blacklist.txt"; DestDir: "{app}" >> installer.iss
+        @echo Source: "youtube.png"; DestDir: "{app}" >> installer.iss
+        @echo [Icons] >> installer.iss
+        @echo Name: "{group}\Youtubedpi"; Filename: "{app}\unlock.exe" >> installer.iss
+
+      - name: Build installer
+        run: |
+          "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
+        
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: dist\
