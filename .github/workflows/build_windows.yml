@@ -25,6 +25,7 @@ jobs:
           pip install --upgrade nuitka
           pip install PyQt5 PyQtWebEngine
           choco install innosetup -y
+          choco install upx -y
 
       - name: Get Python and Qt paths
         id: get_paths
@@ -49,14 +50,13 @@ jobs:
           --include-package=PyQt5.QtWebEngineWidgets ^
           --include-package=PyQt5.QtWebEngineCore ^
           --assume-yes-for-downloads ^
-          --show-progress ^
-          --show-scons ^
-          --noinclude-pytest-mode ^
+          --noinclude-pytest-mode=yes ^
           --noinclude-setuptools-mode ^
           --enable-plugin=upx ^
           --nofollow-import-to=unnecessary_module ^
           --enable-cache ^
-          --show-modules --recurse-all ^
+          --jobs=4 ^
+          --lto=yes ^
           unlock.py
 
       - name: Verify build
