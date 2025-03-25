@@ -1,0 +1,47 @@
+name: Build Windows with Nuitka
+
+on:
+  push:
+    branches: [ main ]  # Триггер на пуш в main
+  pull_request:         # Опционально
+    branches: [ main ]
+
+jobs:
+  build-windows:
+    runs-on: windows-latest  # Сборка под Windows
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'  # Укажите нужную версию Python
+
+      - name: Install Nuitka
+        run: pip install nuitka
+
+      - name: Install additional dependencies (если нужны)
+        run: |
+          pip install pyqt5  # используется PyQt5
+          pip install pyqtwebengine # pyqtwebengine используется
+
+      - name: Compile with Nuitka (Standalone)
+        run: |
+          python -m nuitka `
+            --standalone `
+            --onefile `
+            --windows-disable-console `  # Убирает консоль (для GUI)
+            --output-dir=dist `
+            --plugin-enable=pyqt5 `      # Если используется PyQt5
+            --windows-icon-from-ico=youunlock.ico `  # Укажите путь к иконке
+            --include-qt-plugins=all `
+            --plugin-enable=pyqt5-webengine `  # Ключевой момент: включаем WebEngine!
+            Youtube-app-with-nodpi.py    # Главный файл
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-build
+          path: dist/
