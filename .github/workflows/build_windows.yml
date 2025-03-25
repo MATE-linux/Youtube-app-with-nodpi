@@ -93,8 +93,9 @@ jobs:
             echo Name: "{group}\Youtubedpi"; Filename: "{app}\unlock.exe"
           ) > installer.iss
       - name: Build installer
+        shell: cmd  # Ключевое исправление - используем cmd
         run: |
-          "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss #сборка установщика
+          "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
       
       - name: Verify installer script
         shell: cmd
