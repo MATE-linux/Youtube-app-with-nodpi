@@ -51,7 +51,7 @@ jobs:
           --include-package=PyQt5.QtWebEngineCore ^
           --assume-yes-for-downloads ^
           --noinclude-pytest-mode=nofollow ^
-          --noinclude-setuptools-mode ^
+          --noinclude-setuptools-mode=nofollow ^
           --enable-plugin=upx ^
           --nofollow-import-to=unnecessary_module ^
           --enable-cache ^
