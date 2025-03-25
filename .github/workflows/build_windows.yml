@@ -24,6 +24,7 @@ jobs:
         run: |
           pip install --upgrade nuitka
           pip install PyQt5 PyQtWebEngine
+          choco install innosetup -y
 
       - name: Get Python and Qt paths
         id: get_paths
@@ -50,6 +51,12 @@ jobs:
           --assume-yes-for-downloads ^
           --show-progress ^
           --show-scons ^
+          --noinclude-pytest-mode ^
+          --noinclude-setuptools-mode ^
+          --enable-plugin=upx ^
+          --nofollow-import-to=unnecessary_module ^
+          --enable-cache ^
+          --show-modules --recurse-all ^
           unlock.py
 
       - name: Verify build
@@ -63,6 +70,29 @@ jobs:
             exit 1
           )
 
+      - name: Create installer script
+        run: |
+          @echo [Setup] > installer.iss
+          @echo AppName=MyApp >> installer.iss
+          @echo AppVersion=1.0.1 >> installer.iss
+          @echo SetupIconFile=youunlock.ico
+          @echo DefaultDirName={pf}\Youtubedpi >> installer.iss
+          @echo DefaultGroupName=Youtubedpi >> installer.iss
+          @echo OutputDir=installer >> installer.iss
+          @echo OutputBaseFilename=Youtube-app-with-nodpi-setup-1.0.1 >> installer.iss
+          @echo Compression=lzma >> installer.iss
+          @echo SolidCompression=yes >> installer.iss
+          @echo [Files] >> installer.iss
+          @echo Source: "dist\unlock.exe"; DestDir: "{app}"; Flags: ignoreversion >> installer.iss
+          @echo Source: "blacklist.txt"; DestDir: "{app}" >> installer.iss
+          @echo Source: "youtube.png"; DestDir: "{app}" >> installer.iss
+          @echo [Icons] >> installer.iss
+          @echo Name: "{group}\Youtubedpi"; Filename: "{app}\unlock.exe" >> installer.iss
+
+      - name: Build installer
+        run: |
+          "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss #сборка установщика
+        
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
