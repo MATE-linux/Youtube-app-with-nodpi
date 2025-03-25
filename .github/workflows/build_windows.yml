@@ -22,14 +22,19 @@ jobs:
       - name: Install dependencies
         shell: cmd
         run: |
-          pip install nuitka
+          pip install --upgrade nuitka
           pip install PyQt5 PyQtWebEngine
+
+      - name: Prepare Qt paths
+        id: qt_paths
+        shell: cmd
+        run: |
+          python -c "import PyQt5.QtCore; print('Qt prefix path:', PyQt5.QtCore.QLibraryInfo.location(PyQt5.QtCore.QLibraryInfo.PrefixPath))"
+          python -c "import os, PyQt5.QtCore; qt_plugins = PyQt5.QtCore.QLibraryInfo.location(PyQt5.QtCore.QLibraryInfo.PluginsPath); print('Qt plugins path:', qt_plugins); os.makedirs('qt_resources', exist_ok=True); open('qt_resources/qt_plugins_path.txt', 'w').write(qt_plugins)"
 
       - name: Compile with Nuitka
         shell: cmd
         run: |
-          python -c "import PyQt5.QtCore; print('Qt path:', PyQt5.QtCore.QLibraryInfo.location(PyQt5.QtCore.QLibraryInfo.PrefixPath))"
-          
           python -m nuitka ^
           --standalone ^
           --onefile ^
@@ -39,14 +44,17 @@ jobs:
           --windows-icon-from-ico=youunlock.ico ^
           --include-package=PyQt5.QtWebEngineWidgets ^
           --include-package=PyQt5.QtWebEngineCore ^
-          --assume-yes-for-downloads ^  # Автоматическое подтверждение всех загрузок
+          --include-package=PyQt5.QtWebEngineProcess ^
+          --include-data-file=qt_resources/qt_plugins_path.txt=qt_resources/qt_plugins_path.txt ^
+          --assume-yes-for-downloads ^
           unlock.py
+
       - name: Verify build
         shell: cmd
         run: |
           if exist dist\unlock.exe (
-            echo "Build successful!"
-            dir dist
+            echo "Build successful! File size:"
+            dir dist\unlock.exe
           ) else (
             echo "Build failed!"
             exit 1
@@ -56,4 +64,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-build
-          path: dist\
+          path: dist\unlock.exe
