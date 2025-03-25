@@ -29,7 +29,7 @@ jobs:
 
       - name: Compile with Nuitka (Standalone)
         shell: cmd
-        run: |
+        run: python -m nuitka --standalone --onefile --windows-disable-console --output-dir=dist --enable-plugin=pyqt5 --include-qt-plugins=sensible,multimedia,webenginecore --windows-icon-from-ico=youunlock.ico unlock.py
           python -m nuitka ^
               --standalone ^
               --onefile ^
