@@ -30,15 +30,6 @@ jobs:
       - name: Compile with Nuitka (Standalone)
         shell: cmd
         run: python -m nuitka --standalone --onefile --windows-disable-console --output-dir=dist --enable-plugin=pyqt5 --include-qt-plugins=sensible,multimedia,webenginecore --windows-icon-from-ico=youunlock.ico unlock.py
-          python -m nuitka ^
-              --standalone ^
-              --onefile ^
-              --windows-disable-console ^
-              --output-dir=dist ^
-              --enable-plugin=pyqt5 ^
-              --include-qt-plugins=sensible,multimedia,webenginecore ^     #включаем плагины qt
-              --windows-icon-from-ico=youunlock.ico ^  # Укажите путь к иконке
-              unlock.py
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
