@@ -39,6 +39,7 @@ jobs:
           --windows-icon-from-ico=youunlock.ico ^
           --include-package=PyQt5.QtWebEngineWidgets ^
           --include-package=PyQt5.QtWebEngineCore ^
+          --assume-yes-for-downloads ^  # Автоматическое подтверждение всех загрузок
           unlock.py
       - name: Verify build
         shell: cmd
