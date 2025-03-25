@@ -70,28 +70,37 @@ jobs:
           )
 
       - name: Create installer script
+        shell: cmd  # Важно использовать cmd вместо powershell
         run: |
-          @echo [Setup] > installer.iss
-          @echo AppName=MyApp >> installer.iss
-          @echo AppVersion=1.0.1 >> installer.iss
-          @echo SetupIconFile=youunlock.ico
-          @echo DefaultDirName={pf}\Youtubedpi >> installer.iss
-          @echo DefaultGroupName=Youtubedpi >> installer.iss
-          @echo OutputDir=installer >> installer.iss
-          @echo OutputBaseFilename=Youtube-app-with-nodpi-setup-1.0.1 >> installer.iss
-          @echo Compression=lzma >> installer.iss
-          @echo SolidCompression=yes >> installer.iss
-          @echo [Files] >> installer.iss
-          @echo Source: "dist\unlock.exe"; DestDir: "{app}"; Flags: ignoreversion >> installer.iss
-          @echo Source: "blacklist.txt"; DestDir: "{app}" >> installer.iss
-          @echo Source: "youtube.png"; DestDir: "{app}" >> installer.iss
-          @echo [Icons] >> installer.iss
-          @echo Name: "{group}\Youtubedpi"; Filename: "{app}\unlock.exe" >> installer.iss
-
+          (
+            echo [Setup]
+            echo AppName=Youtubedpi
+            echo AppVersion=1.0.1
+            echo SetupIconFile=youunlock.ico
+            echo DefaultDirName={pf}\Youtubedpi
+            echo DefaultGroupName=Youtubedpi
+            echo OutputDir=installer
+            echo OutputBaseFilename=Youtube-app-with-nodpi-setup-1.0.1
+            echo Compression=lzma
+            echo SolidCompression=yes
+            echo.
+            echo [Files]
+            echo Source: "dist\unlock.exe"; DestDir: "{app}"; Flags: ignoreversion
+            echo Source: "blacklist.txt"; DestDir: "{app}"
+            echo Source: "youtube.png"; DestDir: "{app}"
+            echo.
+            echo [Icons]
+            echo Name: "{group}\Youtubedpi"; Filename: "{app}\unlock.exe"
+          ) > installer.iss
       - name: Build installer
         run: |
           "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss #сборка установщика
-        
+      
+      - name: Verify installer script
+        shell: cmd
+        run: |
+          type installer.iss
+          
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
