@@ -29,17 +29,16 @@ jobs:
 
       - name: Compile with Nuitka (Standalone)
         shell: cmd
-        run:
+        run: |
           python -m nuitka ^
               --standalone ^
               --onefile ^
               --windows-disable-console ^
               --output-dir=dist ^
               --enable-plugin=pyqt5 ^
-              --enable-plugin=pyqt5-webengine ^
               --include-qt-plugins=sensible,multimedia,webenginecore ^     #включаем плагины qt
               --windows-icon-from-ico=youunlock.ico ^  # Укажите путь к иконке
-              Youtube-app-with-nodpi.py
+              unlock.py
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
