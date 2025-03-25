@@ -36,7 +36,7 @@ jobs:
             --output-dir=dist `
             --plugin-enable=pyqt5 `      # Если используется PyQt5
             --windows-icon-from-ico=youunlock.ico `  # Укажите путь к иконке
-            --include-qt-plugins=all `
+            --include-qt-plugins=all `.      #включаем плагины qt
             --plugin-enable=pyqt5-webengine `  # Ключевой момент: включаем WebEngine!
             Youtube-app-with-nodpi.py    # Главный файл
 
