@@ -26,30 +26,61 @@ jobs:
         run: |
           pip install pyqt5  # используется PyQt5
           pip install pyqtwebengine # pyqtwebengine используется
+
       - name: Verify Qt plugins
         run: |
           echo "Checking Qt plugins..."
           ls "$(python -c "import PyQt5.QtCore; print(PyQt5.QtCore.QLibraryInfo.location(PyQt5.QtCore.QLibraryInfo.PluginsPath))")"
+
       - name: Verify Qt installation
         run: |
           python -c "from PyQt5.QtWebEngineWidgets import QWebEngineView; print('QtWebEngine available')"
-      - name: Get Python and Qt paths
-        id: paths
+
+      - name: Prepare environment
+        id: prepare
         shell: bash
         run: |
-          PYTHON_DIR=$(python -c "import sys; print(sys.prefix.replace('\\\\', '/'))"
-          QT_PLUGINS_DIR=$(python -c "import PyQt5.QtCore; print(PyQt5.QtCore.QLibraryInfo.location(PyQt5.QtCore.QLibraryInfo.PluginsPath).replace('\\\\', '/'))"
-          QT_TRANSLATIONS_DIR=$(python -c "import PyQt5.QtCore; print(PyQt5.QtCore.QLibraryInfo.location(PyQt5.QtCore.QLibraryInfo.TranslationsPath).replace('\\\\', '/'))"
-          QT_DATA_DIR=$(python -c "import PyQt5.QtCore; print(PyQt5.QtCore.QLibraryInfo.location(PyQt5.QtCore.QLibraryInfo.DataPath).replace('\\\\', '/'))"
-          echo "PYTHON_DIR=$PYTHON_DIR" >> $GITHUB_OUTPUT
-          echo "QT_PLUGINS_DIR=$QT_PLUGINS_DIR" >> $GITHUB_OUTPUT
-          echo "QT_TRANSLATIONS_DIR=$QT_TRANSLATIONS_DIR" >> $GITHUB_OUTPUT
-          echo "QT_DATA_DIR=$QT_DATA_DIR" >> $GITHUB_OUTPUT
+          # Получаем пути в Unix-формате
+          PYTHON_DIR=$(python -c "import sys; print(sys.prefix.replace('\\', '/'))"
+          QT_DIR=$(python -c "import PyQt5.QtCore; print(PyQt5.QtCore.QLibraryInfo.location(PyQt5.QtCore.QLibraryInfo.PrefixPath).replace('\\', '/'))")
+          
+          echo "PYTHON_DIR=${PYTHON_DIR}" >> $GITHUB_OUTPUT
+          echo "QT_DIR=${QT_DIR}" >> $GITHUB_OUTPUT
+          echo "ICON_FILE=$(ls youunlock.ico || echo '')" >> $GITHUB_OUTPUT
+
+      - name: Verify files
+        run: |
+          if [ -z "${{ steps.prepare.outputs.ICON_FILE }}" ]; then
+            echo "::warning::Icon file youunlock.ico not found!"
+          fi
+          if [ ! -f unlock.py ]; then
+            echo "::error::Main file unlock.py not found!"
+            exit 1
+          fi
+
       - name: Test Nuitka
         run: nuitka --version
+
       - name: Compile with Nuitka (Standalone)
         shell: cmd
-        run: python -m nuitka --standalone --onefile --windows-console-mode=disable --output-dir=dist --enable-plugin=pyqt5 --include-qt-plugins=all --include-data-dir=${{ steps.paths.outputs.QT_PLUGINS_DIR }}=PyQt5/Qt/plugins --windows-icon-from-ico=youunlock.ico --include-data-dir=${{ steps.paths.outputs.QT_TRANSLATIONS_DIR }}=PyQt5/Qt/translations --include-data-dir=${{ steps.paths.outputs.QT_DATA_DIR }}=PyQt5/Qt/resources unlock.py
+        run: |
+          set PYTHON_DIR=${{ steps.prepare.outputs.PYTHON_DIR }}
+          set QT_DIR=${{ steps.prepare.outputs.QT_DIR }}
+          python -m nuitka ^
+            --standalone ^
+            --onefile ^
+            --windows-console-mode=disable ^
+            --output-dir=dist ^
+            --enable-plugin=pyqt5 ^
+            --windows-icon-from-ico=youunlock.ico ^
+            --include-data-dir=%QT_DIR%/translations=PyQt5/Qt/translations ^
+            --include-data-dir=%QT_DIR%/resources=PyQt5/Qt/resources ^
+            --include-data-dir=%QT_DIR%/plugins=PyQt5/Qt/plugins ^
+            --include-package=PyQt5.QtWebEngineWidgets ^
+            --include-package=PyQt5.QtWebEngineCore ^
+            --include-package=PyQt5.QtWebEngine ^
+            unlock.py
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
