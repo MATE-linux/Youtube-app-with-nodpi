@@ -30,9 +30,14 @@ jobs:
         run: |
           echo "Checking Qt plugins..."
           ls "$(python -c "import PyQt5.QtCore; print(PyQt5.QtCore.QLibraryInfo.location(PyQt5.QtCore.QLibraryInfo.PluginsPath))")"
+      - name: Verify Qt installation
+        run: |
+          python -c "from PyQt5.QtWebEngineWidgets import QWebEngineView; print('QtWebEngine available')"
+      - name: Test Nuitka
+        run: nuitka --version
       - name: Compile with Nuitka (Standalone)
         shell: cmd
-        run: python -m nuitka --standalone --onefile --windows-console-mode=disable --output-dir=dist --enable-plugin=pyqt5 --include-qt-plugins=sensible,webenginecore --windows-icon-from-ico=youunlock.ico unlock.py
+        run: python -m nuitka --standalone --onefile --windows-console-mode=disable --output-dir=dist --enable-plugin=pyqt5 --include-qt-plugins=all --include-qt-plugins-by-type=webengine --windows-icon-from-ico=youunlock.ico --include-data-dir=%PYTHON_DIR%/Lib/site-packages/PyQt5/Qt5/translations=PyQt5/Qt5/translations --include-data-dir=%PYTHON_DIR%/Lib/site-packages/PyQt5/Qt5/resources=PyQt5/Qt5/resources unlock.py
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
