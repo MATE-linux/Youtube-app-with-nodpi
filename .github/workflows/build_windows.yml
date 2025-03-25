@@ -97,3 +97,10 @@ jobs:
         with:
           name: windows-build
           path: dist\
+
+      - name: Upload artifact 2
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: installer\
+
