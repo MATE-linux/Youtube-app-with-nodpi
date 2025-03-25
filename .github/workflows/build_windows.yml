@@ -2,13 +2,13 @@ name: Build Windows with Nuitka
 
 on:
   push:
-    branches: [ main ]  # Триггер на пуш в main
-  pull_request:         # Опционально
+    branches: [ main ]
+  pull_request:
     branches: [ main ]
 
 jobs:
   build-windows:
-    runs-on: windows-latest  # Сборка под Windows
+    runs-on: windows-latest
 
     steps:
       - name: Checkout repository
@@ -17,72 +17,42 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.8'  # Укажите нужную версию Python
+          python-version: '3.8'
 
-      - name: Install Nuitka
-        run: pip install --upgrade nuitka
-
-      - name: Install additional dependencies (если нужны)
-        run: |
-          pip install pyqt5  # используется PyQt5
-          pip install pyqtwebengine # pyqtwebengine используется
-
-      - name: Verify Qt plugins
-        run: |
-          echo "Checking Qt plugins..."
-          ls "$(python -c "import PyQt5.QtCore; print(PyQt5.QtCore.QLibraryInfo.location(PyQt5.QtCore.QLibraryInfo.PluginsPath))")"
-
-      - name: Verify Qt installation
-        run: |
-          python -c "from PyQt5.QtWebEngineWidgets import QWebEngineView; print('QtWebEngine available')"
-
-      - name: Prepare environment
-        id: prepare
-        shell: bash
-        run: |
-          # Получаем пути в Unix-формате
-          PYTHON_DIR=$(python -c "import sys; print(sys.prefix.replace('\\', '/'))"
-          QT_DIR=$(python -c "import PyQt5.QtCore; print(PyQt5.QtCore.QLibraryInfo.location(PyQt5.QtCore.QLibraryInfo.PrefixPath).replace('\\', '/'))")
-          
-          echo "PYTHON_DIR=${PYTHON_DIR}" >> $GITHUB_OUTPUT
-          echo "QT_DIR=${QT_DIR}" >> $GITHUB_OUTPUT
-          echo "ICON_FILE=$(ls youunlock.ico || echo '')" >> $GITHUB_OUTPUT
-
-      - name: Verify files
-        run: |
-          if [ -z "${{ steps.prepare.outputs.ICON_FILE }}" ]; then
-            echo "::warning::Icon file youunlock.ico not found!"
-          fi
-          if [ ! -f unlock.py ]; then
-            echo "::error::Main file unlock.py not found!"
-            exit 1
-          fi
-
-      - name: Test Nuitka
-        run: nuitka --version
-
-      - name: Compile with Nuitka (Standalone)
+      - name: Install dependencies
         shell: cmd
         run: |
-          set PYTHON_DIR=${{ steps.prepare.outputs.PYTHON_DIR }}
-          set QT_DIR=${{ steps.prepare.outputs.QT_DIR }}
+          pip install nuitka
+          pip install PyQt5 PyQtWebEngine
+
+      - name: Compile with Nuitka
+        shell: cmd
+        run: |
+          python -c "import PyQt5.QtCore; print('Qt path:', PyQt5.QtCore.QLibraryInfo.location(PyQt5.QtCore.QLibraryInfo.PrefixPath))"
+          
           python -m nuitka ^
-            --standalone ^
-            --onefile ^
-            --windows-console-mode=disable ^
-            --output-dir=dist ^
-            --enable-plugin=pyqt5 ^
-            --windows-icon-from-ico=youunlock.ico ^
-            --include-data-dir=%QT_DIR%/translations=PyQt5/Qt/translations ^
-            --include-data-dir=%QT_DIR%/resources=PyQt5/Qt/resources ^
-            --include-data-dir=%QT_DIR%/plugins=PyQt5/Qt/plugins ^
-            --include-package=PyQt5.QtWebEngineWidgets ^
-            --include-package=PyQt5.QtWebEngineCore ^
-            --include-package=PyQt5.QtWebEngine ^
-            unlock.py
+          --standalone ^
+          --onefile ^
+          --windows-console-mode=disable ^
+          --output-dir=dist ^
+          --enable-plugin=pyqt5 ^
+          --windows-icon-from-ico=youunlock.ico ^
+          --include-package=PyQt5.QtWebEngineWidgets ^
+          --include-package=PyQt5.QtWebEngineCore ^
+          unlock.py
+      - name: Verify build
+        shell: cmd
+        run: |
+          if exist dist\unlock.exe (
+            echo "Build successful!"
+            dir dist
+          ) else (
+            echo "Build failed!"
+            exit 1
+          )
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-build
-          path: dist/
+          path: dist\
