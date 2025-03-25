@@ -20,7 +20,7 @@ jobs:
           python-version: '3.8'  # Укажите нужную версию Python
 
       - name: Install Nuitka
-        run: pip install nuitka
+        run: pip install --upgrade nuitka
 
       - name: Install additional dependencies (если нужны)
         run: |
@@ -37,7 +37,7 @@ jobs:
         run: nuitka --version
       - name: Compile with Nuitka (Standalone)
         shell: cmd
-        run: python -m nuitka --standalone --onefile --windows-console-mode=disable --output-dir=dist --enable-plugin=pyqt5 --include-qt-plugins=all --include-qt-plugins-by-type=webengine --windows-icon-from-ico=youunlock.ico --include-data-dir=%PYTHON_DIR%/Lib/site-packages/PyQt5/Qt5/translations=PyQt5/Qt5/translations --include-data-dir=%PYTHON_DIR%/Lib/site-packages/PyQt5/Qt5/resources=PyQt5/Qt5/resources unlock.py
+        run: python -m nuitka --standalone --onefile --windows-console-mode=disable --output-dir=dist --enable-plugin=pyqt5 --include-qt-plugins=all --include-data-dir=%PYTHON_DIR%\Lib\site-packages\PyQt5\Qt5\bin=PyQt5/Qt5/bin --windows-icon-from-ico=youunlock.ico --include-data-dir=%PYTHON_DIR%\Lib\site-packages\PyQt5\Qt5\translations=PyQt5/Qt5/translations --include-data-dir=%PYTHON_DIR%\Lib\site-packages\PyQt5\Qt5\resources=PyQt5/Qt5/resources unlock.py
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
