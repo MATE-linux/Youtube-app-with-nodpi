@@ -18,25 +18,26 @@ jobs:
         uses: actions/setup-python@v4
         with:
           python-version: '3.8'
-
+          
       - name: Install dependencies
         shell: cmd
         run: |
           pip install --upgrade nuitka
           pip install PyQt5 PyQtWebEngine
 
-      - name: Get Qt paths
-        id: qt_paths
+      - name: Get Python and Qt paths
+        id: get_paths
         shell: cmd
         run: |
-          python -c "import os, PyQt5; qt_path = os.path.join(os.path.dirname(PyQt5.__file__), 'Qt'); print('Qt path:', qt_path)"
-          python -c "import os, PyQt5; qt_bin = os.path.join(os.path.dirname(PyQt5.__file__), 'Qt', 'bin'); print('Qt bin path:', qt_bin)"
-          python -c "import os, PyQt5; qt_res = os.path.join(os.path.dirname(PyQt5.__file__), 'Qt', 'resources'); print('Qt resources path:', qt_res)"
-          python -c "import os, PyQt5; qt_trans = os.path.join(os.path.dirname(PyQt5.__file__), 'Qt', 'translations'); print('Qt translations path:', qt_trans)"
+          python -c "import sys; print(f'PYTHON_DIR={sys.prefix}')" >> %GITHUB_OUTPUT%
+          python -c "import PyQt5, os; print(f'QT_DIR={os.path.dirname(PyQt5.__file__)}')" >> %GITHUB_OUTPUT%
 
       - name: Compile with Nuitka
         shell: cmd
         run: |
+          set QT_PATH=%{{ steps.get_paths.outputs.QT_DIR }}\Qt
+          set DEST_DIR=PyQt5\Qt
+          
           python -m nuitka ^
           --standalone ^
           --onefile ^
@@ -45,10 +46,12 @@ jobs:
           --enable-plugin=pyqt5 ^
           --windows-icon-from-ico=youunlock.ico ^
           --include-qt-plugins=webengine ^
-          --include-data-dir="%PYTHONPATH%\Lib\site-packages\PyQt5\Qt\bin"="PyQt5/Qt/bin" ^
-          --include-data-dir="%PYTHONPATH%\Lib\site-packages\PyQt5\Qt\resources"="PyQt5/Qt/resources" ^
-          --include-data-dir="%PYTHONPATH%\Lib\site-packages\PyQt5\Qt\translations"="PyQt5/Qt/translations" ^
+          --include-data-dir=%QT_PATH%\bin=%DEST_DIR%\bin ^
+          --include-data-dir=%QT_PATH%\resources=%DEST_DIR%\resources ^
+          --include-data-dir=%QT_PATH%\translations=%DEST_DIR%\translations ^
           --assume-yes-for-downloads ^
+          --show-progress ^
+          --show-scons ^
           unlock.py
 
       - name: Verify build
