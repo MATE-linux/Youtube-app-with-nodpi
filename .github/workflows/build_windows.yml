@@ -101,6 +101,17 @@ jobs:
         shell: cmd
         run: |
           type installer.iss
+
+      - name: Verify build
+        shell: cmd
+        run: |
+          if exist installer\Youtube-app-with-nodpi-setup-1.0.1.exe (
+            echo "Build successful!"
+            dir dist
+          ) else (
+            echo "Build failed!"
+            exit 1
+          )
           
       - name: Upload artifact
         uses: actions/upload-artifact@v4
