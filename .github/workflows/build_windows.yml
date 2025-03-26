@@ -43,6 +43,7 @@ jobs:
       - name: Compile with Nuitka
         shell: cmd
         run: |
+          python -c "import os, PyQt5; qt_dir = os.path.join(os.path.dirname(PyQt5.__file__), 'Qt'); print(f'Qt bin exists: {os.path.exists(os.path.join(qt_dir, \"bin\"))}'); print(f'QtWebEngineProcess exists: {os.path.exists(os.path.join(qt_dir, \"bin\", \"QtWebEngineProcess.exe\"))}')"
           set QT_PATH=%{{ steps.get_paths.outputs.QT_DIR }}\Qt
           set DEST_DIR=PyQt5\Qt
           rmdir /s /q build 2>nul || true
