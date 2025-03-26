@@ -33,13 +33,19 @@ jobs:
         run: |
           python -c "import sys; print(f'PYTHON_DIR={sys.prefix}')" >> %GITHUB_OUTPUT%
           python -c "import PyQt5, os; print(f'QT_DIR={os.path.dirname(PyQt5.__file__)}')" >> %GITHUB_OUTPUT%
+          nuitka --version
 
       - name: Compile with Nuitka
         shell: cmd
         run: |
           set QT_PATH=%{{ steps.get_paths.outputs.QT_DIR }}\Qt
           set DEST_DIR=PyQt5\Qt
-          
+          rmdir /s /q build 2>nul || true
+          rmdir /s /q dist 2>nul || true
+    
+          # Запуск Nuitka с явным указанием временного каталога
+          set TEMP=%GITHUB_WORKSPACE%\temp
+          mkdir %TEMP%
           python -m nuitka ^
           --standalone ^
           --onefile ^
