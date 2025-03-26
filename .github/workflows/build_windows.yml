@@ -111,6 +111,6 @@ jobs:
       - name: Upload artifact 2
         uses: actions/upload-artifact@v4
         with:
-          name: windows-build
+          name: Youtube-app-with-nodpi-setup-1.0.1
           path: installer\
 
