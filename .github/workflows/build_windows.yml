@@ -33,7 +33,8 @@ jobs:
         run: |
           python -c "import sys; print(f'PYTHON_DIR={sys.prefix}')" >> %GITHUB_OUTPUT%
           python -c "import PyQt5, os; print(f'QT_DIR={os.path.dirname(PyQt5.__file__)}')" >> %GITHUB_OUTPUT%
-          nuitka --version
+          # Находим реальный путь к Qt
+          python -c "import os, PyQt5; qt_dir = os.path.dirname(PyQt5.__file__); print(f'QT_DIR={qt_dir}')" >> %GITHUB_ENV%
       - name: Check disk space
         run: df -h 
       - name: List running processes
@@ -59,10 +60,10 @@ jobs:
           --windows-icon-from-ico=youunlock.ico ^
           --include-package=PyQt5.QtWebEngineWidgets ^
           --include-package=PyQt5.QtWebEngineCore ^
-          --include-data-dir=%PYTHONPATH%\Lib\site-packages\PyQt5\Qt\bin=PyQt5/Qt/bin ^
-          --include-data-dir=%PYTHONPATH%\Lib\site-packages\PyQt5\Qt\resources=PyQt5/Qt/resources ^
-          --include-data-dir=%PYTHONPATH%\Lib\site-packages\PyQt5\Qt\translations=PyQt5/Qt/translations ^
-          --include-data-file=%PYTHONPATH%\Lib\site-packages\PyQt5\Qt\bin\Qt5WebEngineProcess.exe=PyQt5/Qt/bin/ ^
+          --include-data-dir=%QT_DIR%\Qt\plugins=PyQt5/Qt/plugins ^
+          --include-data-dir=%QT_DIR%\Qt\resources=PyQt5/Qt/resources ^
+          --include-data-file=%QT_DIR%\Qt\bin\QtWebEngineProcess.exe=PyQt5/Qt/bin/QtWebEngineProcess.exe ^
+          --include-data-file=%QT_DIR%\Qt\bin\QtWebEngineProcess.exe=PyQt5/Qt/bin/ ^
           --assume-yes-for-downloads ^
           --noinclude-pytest-mode=nofollow ^
           --noinclude-setuptools-mode=nofollow ^
