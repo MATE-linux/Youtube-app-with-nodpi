@@ -22,7 +22,7 @@ jobs:
       - name: Install dependencies
         shell: cmd
         run: |
-          pip install --upgrade nuitka
+          pip install --upgrade nuitka #f
           pip install PyQt5 PyQtWebEngine
           choco install innosetup -y
           choco install upx -y
