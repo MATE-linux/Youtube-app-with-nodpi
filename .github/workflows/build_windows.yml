@@ -34,7 +34,11 @@ jobs:
           python -c "import sys; print(f'PYTHON_DIR={sys.prefix}')" >> %GITHUB_OUTPUT%
           python -c "import PyQt5, os; print(f'QT_DIR={os.path.dirname(PyQt5.__file__)}')" >> %GITHUB_OUTPUT%
           nuitka --version
-
+      - name: Check disk space
+        run: df -h 
+      - name: List running processes
+        run: tasklist
+        
       - name: Compile with Nuitka
         shell: cmd
         run: |
@@ -60,8 +64,9 @@ jobs:
           --noinclude-setuptools-mode=nofollow ^
           --enable-plugin=upx ^
           --nofollow-import-to=unnecessary_module ^
-          --jobs=4 ^
+          --jobs=2 ^
           --lto=yes ^
+          --show-scons --show-progress ^
           unlock.py
 
       - name: Verify build
