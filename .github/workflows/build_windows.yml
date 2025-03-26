@@ -59,6 +59,10 @@ jobs:
           --windows-icon-from-ico=youunlock.ico ^
           --include-package=PyQt5.QtWebEngineWidgets ^
           --include-package=PyQt5.QtWebEngineCore ^
+          --include-data-dir=%PYTHONPATH%\Lib\site-packages\PyQt5\Qt\bin=PyQt5/Qt/bin ^
+          --include-data-dir=%PYTHONPATH%\Lib\site-packages\PyQt5\Qt\resources=PyQt5/Qt/resources ^
+          --include-data-dir=%PYTHONPATH%\Lib\site-packages\PyQt5\Qt\translations=PyQt5/Qt/translations ^
+          --include-data-file=%PYTHONPATH%\Lib\site-packages\PyQt5\Qt\bin\Qt5WebEngineProcess.exe=PyQt5/Qt/bin/ ^
           --assume-yes-for-downloads ^
           --noinclude-pytest-mode=nofollow ^
           --noinclude-setuptools-mode=nofollow ^
