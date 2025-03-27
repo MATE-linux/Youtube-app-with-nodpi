@@ -30,13 +30,11 @@ jobs:
           # Проверяем установку Qt
           python -c "import os, PyQt5; qt_dir = os.path.join(os.path.dirname(PyQt5.__file__), 'Qt'); assert os.path.exists(os.path.join(qt_dir, 'bin')), 'Qt bin folder missing!'; print('Qt found at:', qt_dir)"
           choco install innosetup -y
-          choco install upx -y
-
-
-        
-      - name: Inspect PyQt5 directories
+          choco install upx -y  
+      - name: Verify Python paths
         shell: cmd
         run: |
-          python -c "import PyQt5, os; print(f'PyQt5 location: {os.path.dirname(PyQt5.__file__)}')"
-          tree "%PYTHONPATH%\Lib\site-packages\PyQt5" /F
+          echo Python PATH: %PYTHONPATH%
+          python -c "import sys; print(sys.prefix)"
+          dir "%PYTHONPATH%\Lib\site-packages" /A
 
