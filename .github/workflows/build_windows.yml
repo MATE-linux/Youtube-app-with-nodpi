@@ -31,14 +31,6 @@ jobs:
       - name: Verify Qt structure
         shell: cmd
         run: |
-           python -c """
-           import os, PyQt5
-           qt_dir = os.path.join(os.path.dirname(PyQt5.__file__), 'Qt')
-           print('Qt directory:', qt_dir)
-           if os.path.exists(qt_dir):
-               print('Subdirectories:', [d for d in os.listdir(qt_dir) if os.path.isdir(os.path.join(qt_dir, d))])
-           else:
-               print('Qt directory not found!')
-           """
+           dir "C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQt5\Qt"
 
 
