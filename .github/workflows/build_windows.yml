@@ -63,7 +63,7 @@ jobs:
           --include-package=PyQt5.QtWebEngineCore ^
           --include-data-dir=%QT_DIR%\Qt\plugins=PyQt5/Qt/plugins ^
           --include-data-dir=%QT_DIR%\Qt\resources=PyQt5/Qt/resources ^
-          --include-data-file=%QT_DIR%\Qt\bin\QtWebEngineProcess.exe=PyQt5/Qt/bin/ ^
+          --include-data-file=%QT_DIR%\Qt\bin=PyQt5/Qt/bin/ ^
           --assume-yes-for-downloads ^
           --noinclude-pytest-mode=nofollow ^
           --noinclude-setuptools-mode=nofollow ^
