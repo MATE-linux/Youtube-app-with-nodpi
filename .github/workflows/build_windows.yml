@@ -17,7 +17,6 @@ jobs:
       - name: Set up Python
         run: |
            choco install -y python --version=3.8.10
-           refreshenv
           
       - name: Install via official installer (fallback)
         shell: cmd
