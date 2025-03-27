@@ -14,15 +14,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
-        run: |
-           choco install -y python --version=3.8.10
+      # 1. Установка Python 3.8 (более стабильная версия для PyQt5)
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+          architecture: 'x64'
           
       - name: Install via official installer (fallback)
         shell: cmd
         run: |
           pip install --upgrade pip setuptools wheel
           pip uninstall -y PyQt5 PyQtWebEngine PyQt5-sip
-          pip install PyQt5==5.15.4 PyQtWebEngine==5.15.5 --no-binary PyQt5,PyQtWebEngine
-          dir C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQt5\Qt"
+          pip install PyQt5==5.15.4 PyQtWebEngine==5.15.5 ^
+          --only-binary=:all: ^
+          --find-links=https://download.lfd.uci.edu/pythonlibs/archived/ ^
+          --index-url https://pypi.org/simple/
 
