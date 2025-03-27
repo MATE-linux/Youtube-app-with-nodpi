@@ -23,7 +23,12 @@ jobs:
         shell: cmd
         run: |
           pip install --upgrade nuitka
-          pip install PyQt5 PyQtWebEngine
+          # Удаляем проблемные версии
+          pip uninstall -y PyQt5 PyQtWebEngine PyQt5-sip PyQt5-tools
+          # Ставим конкретные проверенные версии
+          pip install PyQt5==5.15.4 PyQtWebEngine==5.15.5
+          # Проверяем установку Qt
+          python -c "import os, PyQt5; qt_dir = os.path.join(os.path.dirname(PyQt5.__file__), 'Qt'); assert os.path.exists(os.path.join(qt_dir, 'bin')), 'Qt bin folder missing!'; print('Qt found at:', qt_dir)"
           choco install innosetup -y
           choco install upx -y
 
@@ -59,11 +64,11 @@ jobs:
           --output-dir=dist ^
           --enable-plugin=pyqt5 ^
           --windows-icon-from-ico=youunlock.ico ^
+          --include-qt-plugins ^
           --include-package=PyQt5.QtWebEngineWidgets ^
           --include-package=PyQt5.QtWebEngineCore ^
           --include-data-dir=%QT_DIR%\Qt\plugins=PyQt5/Qt/plugins ^
           --include-data-dir=%QT_DIR%\Qt\resources=PyQt5/Qt/resources ^
-          --include-data-file=%QT_DIR%\Qt\bin=PyQt5/Qt/bin/ ^
           --assume-yes-for-downloads ^
           --noinclude-pytest-mode=nofollow ^
           --noinclude-setuptools-mode=nofollow ^
