@@ -30,4 +30,5 @@ jobs:
           --only-binary=:all: ^
           --find-links=https://download.lfd.uci.edu/pythonlibs/archived/ ^
           --index-url https://pypi.org/simple/
+          dir C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQt5\Qt
 
