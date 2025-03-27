@@ -19,18 +19,9 @@ jobs:
         with:
           python-version: '3.8'
           
-        # 1. Полная переустановка PyQt5 с правильными зависимостями
-      - name: Reinstall PyQt5 properly
+      - name: Install via official installer (fallback)
         shell: cmd
         run: |
-            pip uninstall -y PyQt5 PyQt5-sip PyQtWebEngine
-            pip install --no-cache-dir --force-reinstall PyQt5==5.15.4 PyQtWebEngine==5.15.5
-            python -c "import PyQt5, os; print('Qt dir exists:', os.path.exists(os.path.join(os.path.dirname(PyQt5.__file__), 'Qt')))"
-
-  # 2. Проверка структуры Qt
-      - name: Verify Qt structure
-        shell: cmd
-        run: |
-           dir "C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQt5\Qt"
-
+          pip install PyQt5 --install-option="--verbose" --install-option="--confirm-license"
+          dir "%PYTHONPATH%\Lib\site-packages\PyQt5\Qt"
 
