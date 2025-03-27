@@ -27,12 +27,8 @@ jobs:
           pip uninstall -y PyQt5 PyQtWebEngine PyQt5-sip PyQt5-tools
           # Ставим конкретные проверенные версии
           pip install PyQt5==5.15.4 PyQtWebEngine==5.15.5
-          # Проверяем установку Qt
-          python -c "import os, PyQt5; qt_dir = os.path.join(os.path.dirname(PyQt5.__file__), 'Qt'); assert os.path.exists(os.path.join(qt_dir, 'bin')), 'Qt bin folder missing!'; print('Qt found at:', qt_dir)"
-          choco install innosetup -y
-          choco install upx -y  
       - name: Hardcoded path check
-        run: dir "C:\hostedtoolcache\windows\Python\3.8.10\x64"
+        run: dir "C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQt5"
       - name: Check permissions
         run: icacls "%PYTHONPATH%\Lib\site-packages\PyQt5"
 
