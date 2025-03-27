@@ -29,8 +29,6 @@ jobs:
           pip install PyQt5==5.15.4 PyQtWebEngine==5.15.5
       - name: Hardcoded path check
         run: |
-          dir "C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQt5\Qt\plugins" ^
-          dir "C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQt5\Qt\resources" ^
-          dir "C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQt5\Qt\translations" ^
+          dir "C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQt5\Qt"
 
 
