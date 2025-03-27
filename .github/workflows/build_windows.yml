@@ -22,10 +22,7 @@ jobs:
         shell: cmd
         run: |
           pip install --upgrade pip setuptools wheel
-          pip install PyQt5==5.15.4 PyQtWebEngine==5.15.5 ^
-          --index-url https://pypi.ngc.nvidia.com ^
-          --extra-index-url https://pypi.org/simple
-          pip install PyQtWebEngine==5.15.5 ^
-          --config-settings="--qmake=C:\Qt\5.15.2\msvc2019_64\bin\qmake.exe"
+          pip uninstall -y PyQt5 PyQtWebEngine PyQt5-sip
+          pip install PyQt5==5.15.4 PyQtWebEngine==5.15.5 --no-binary PyQt5,PyQtWebEngine
           dir C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQt5\Qt"
 
