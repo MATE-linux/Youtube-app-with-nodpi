@@ -23,8 +23,14 @@ jobs:
         shell: cmd
         run: |
           pip install --upgrade nuitka
-          pip install PyQt5 PyQtWebEngine
+          # Удаляем проблемные версии
+          pip uninstall -y PyQt5 PyQtWebEngine PyQt5-sip PyQt5-tools
+          # Ставим конкретные проверенные версии
+          pip install PyQt5==5.15.4 PyQtWebEngine==5.15.5
+          # Проверяем установку Qt
+          python -c "import os, PyQt5; qt_dir = os.path.join(os.path.dirname(PyQt5.__file__), 'Qt'); assert os.path.exists(os.path.join(qt_dir, 'bin')), 'Qt bin folder missing!'; print('Qt found at:', qt_dir)"
           choco install innosetup -y
+          choco install upx -y
 
       - name: Get Python and Qt paths
         id: get_paths
@@ -32,13 +38,21 @@ jobs:
         run: |
           python -c "import sys; print(f'PYTHON_DIR={sys.prefix}')" >> %GITHUB_OUTPUT%
           python -c "import PyQt5, os; print(f'QT_DIR={os.path.dirname(PyQt5.__file__)}')" >> %GITHUB_OUTPUT%
-
+          # Находим реальный путь к Qt
+          python -c "import os, PyQt5; qt_dir = os.path.dirname(PyQt5.__file__); print(f'QT_DIR={qt_dir}')" >> %GITHUB_ENV%
+      - name: Check disk space
+        run: df -h 
+      - name: List running processes
+        run: tasklist
+        
       - name: Compile with Nuitka
         shell: cmd
         run: |
-          set QT_PATH=%{{ steps.get_paths.outputs.QT_DIR }}\Qt
-          set DEST_DIR=PyQt5\Qt
-          
+          # Получаем абсолютный путь к site-packages
+          python -c "import site; print(f'SITE_PACKAGES={site.getsitepackages()[0]}')" >> %GITHUB_ENV%
+          # Запуск Nuitka с явным указанием временного каталога
+          set TEMP=%GITHUB_WORKSPACE%\temp
+          mkdir %TEMP%
           python -m nuitka ^
           --standalone ^
           --onefile ^
@@ -46,17 +60,20 @@ jobs:
           --output-dir=dist ^
           --enable-plugin=pyqt5 ^
           --windows-icon-from-ico=youunlock.ico ^
+          --include-qt-plugins=webengine ^
           --include-package=PyQt5.QtWebEngineWidgets ^
           --include-package=PyQt5.QtWebEngineCore ^
+          --include-data-dir="%SITE_PACKAGES%\PyQt5\Qt\plugins"="PyQt5/Qt/plugins" ^
+          --include-data-dir="%SITE_PACKAGES%\PyQt5\Qt\resources"="PyQt5/Qt/resources" ^
+          --include-data-dir="%SITE_PACKAGES%\PyQt5\Qt\translations"="PyQt5/Qt/translations" ^
           --assume-yes-for-downloads ^
-          --show-progress ^
-          --show-scons ^
-          --noinclude-pytest-mode ^
-          --noinclude-setuptools-mode ^
+          --noinclude-pytest-mode=nofollow ^
+          --noinclude-setuptools-mode=nofollow ^
           --enable-plugin=upx ^
           --nofollow-import-to=unnecessary_module ^
-          --enable-cache ^
-          --show-modules --recurse-all ^
+          --jobs=2 ^
+          --lto=yes ^
+          --show-scons --show-progress ^
           unlock.py
 
       - name: Verify build
@@ -71,30 +88,57 @@ jobs:
           )
 
       - name: Create installer script
-      run: |
-        @echo [Setup] > installer.iss
-        @echo AppName=MyApp >> installer.iss
-        @echo AppVersion=1.0.1 >> installer.iss
-        @echo SetupIconFile=youunlock.ico
-        @echo DefaultDirName={pf}\Youtubedpi >> installer.iss
-        @echo DefaultGroupName=Youtubedpi >> installer.iss
-        @echo OutputDir=installer >> installer.iss
-        @echo OutputBaseFilename=Youtube-app-with-nodpi-setup-1.0.1 >> installer.iss
-        @echo Compression=lzma >> installer.iss
-        @echo SolidCompression=yes >> installer.iss
-        @echo [Files] >> installer.iss
-        @echo Source: "dist\unlock.exe"; DestDir: "{app}"; Flags: ignoreversion >> installer.iss
-        @echo Source: "blacklist.txt"; DestDir: "{app}" >> installer.iss
-        @echo Source: "youtube.png"; DestDir: "{app}" >> installer.iss
-        @echo [Icons] >> installer.iss
-        @echo Name: "{group}\Youtubedpi"; Filename: "{app}\unlock.exe" >> installer.iss
-
-      - name: Build installer
+        shell: cmd  # Важно использовать cmd вместо powershell
         run: |
-          "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss #сборка установщика
-        
+          (
+            echo [Setup]
+            echo AppName=Youtubedpi
+            echo AppVersion=1.0.1
+            echo SetupIconFile=youunlock.ico
+            echo DefaultDirName={pf}\Youtubedpi
+            echo DefaultGroupName=Youtubedpi
+            echo OutputDir=installer
+            echo OutputBaseFilename=Youtube-app-with-nodpi-setup-1.0.1
+            echo Compression=lzma
+            echo SolidCompression=yes
+            echo.
+            echo [Files]
+            echo Source: "dist\unlock.exe"; DestDir: "{app}"; Flags: ignoreversion
+            echo Source: "blacklist.txt"; DestDir: "{app}"
+            echo Source: "youtube.png"; DestDir: "{app}"
+            echo.
+            echo [Icons]
+            echo Name: "{group}\Youtubedpi"; Filename: "{app}\unlock.exe"
+          ) > installer.iss
+      - name: Build installer
+        shell: cmd  # Ключевое исправление - используем cmd
+        run: |
+          "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
+      
+      - name: Verify installer script
+        shell: cmd
+        run: |
+          type installer.iss
+
+      - name: Verify build
+        shell: cmd
+        run: |
+          if exist installer\Youtube-app-with-nodpi-setup-1.0.1.exe (
+            echo "Build successful!"
+            dir dist
+          ) else (
+            echo "Build failed!"
+            exit 1
+          )
+          
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-build
           path: dist\
+
+      - name: Upload artifact 2
+        uses: actions/upload-artifact@v4
+        with:
+          name: Youtube-app-with-nodpi-setup-1.0.1
+          path: installer\
