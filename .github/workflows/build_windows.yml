@@ -64,7 +64,7 @@ jobs:
           --output-dir=dist ^
           --enable-plugin=pyqt5 ^
           --windows-icon-from-ico=youunlock.ico ^
-          --include-qt-plugins ^
+          --include-qt-plugins=webengine,printsupport ^
           --include-package=PyQt5.QtWebEngineWidgets ^
           --include-package=PyQt5.QtWebEngineCore ^
           --include-data-dir=%QT_DIR%\Qt\plugins=PyQt5/Qt/plugins ^
