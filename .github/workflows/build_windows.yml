@@ -48,12 +48,8 @@ jobs:
       - name: Compile with Nuitka
         shell: cmd
         run: |
-          python -c "import os, PyQt5; qt_dir = os.path.join(os.path.dirname(PyQt5.__file__), 'Qt'); print(f'Qt bin exists: {os.path.exists(os.path.join(qt_dir, \"bin\"))}'); print(f'QtWebEngineProcess exists: {os.path.exists(os.path.join(qt_dir, \"bin\", \"QtWebEngineProcess.exe\"))}')"
-          set QT_PATH=%{{ steps.get_paths.outputs.QT_DIR }}\Qt
-          set DEST_DIR=PyQt5\Qt
-          rmdir /s /q build 2>nul || true
-          rmdir /s /q dist 2>nul || true
-    
+          # Получаем абсолютный путь к site-packages
+          python -c "import site; print(f'SITE_PACKAGES={site.getsitepackages()[0]}')" >> %GITHUB_ENV%
           # Запуск Nuitka с явным указанием временного каталога
           set TEMP=%GITHUB_WORKSPACE%\temp
           mkdir %TEMP%
@@ -64,11 +60,12 @@ jobs:
           --output-dir=dist ^
           --enable-plugin=pyqt5 ^
           --windows-icon-from-ico=youunlock.ico ^
-          --include-qt-plugins=webengine,printsupport ^
+          --include-qt-plugins=webengine ^
           --include-package=PyQt5.QtWebEngineWidgets ^
           --include-package=PyQt5.QtWebEngineCore ^
-          --include-data-dir=%QT_DIR%\Qt\plugins=PyQt5/Qt/plugins ^
-          --include-data-dir=%QT_DIR%\Qt\resources=PyQt5/Qt/resources ^
+          --include-data-dir="%SITE_PACKAGES%\PyQt5\Qt\plugins"="PyQt5/Qt/plugins" ^
+          --include-data-dir="%SITE_PACKAGES%\PyQt5\Qt\resources"="PyQt5/Qt/resources" ^
+          --include-data-dir="%SITE_PACKAGES%\PyQt5\Qt\translations"="PyQt5/Qt/translations" ^
           --assume-yes-for-downloads ^
           --noinclude-pytest-mode=nofollow ^
           --noinclude-setuptools-mode=nofollow ^
