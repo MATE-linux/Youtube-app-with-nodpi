@@ -23,13 +23,11 @@ jobs:
       - name: Install via official installer (fallback)
         shell: cmd
         run: |
-          pip install PyQt5 --install-option="--verbose" --install-option="--confirm-license"
-          dir "%PYTHONPATH%\Lib\site-packages\PyQt5\Qt"
           pip install --upgrade pip setuptools wheel
-          pip install PyQt5==5.15.4 ^
-            --config-settings="--qmake=C:\Qt\5.15.2\msvc2019_64\bin\qmake.exe" ^
-            --config-settings="--verbose"
+          pip install PyQt5==5.15.4 PyQtWebEngine==5.15.5 ^
+          --index-url https://pypi.ngc.nvidia.com ^
+          --extra-index-url https://pypi.org/simple
           pip install PyQtWebEngine==5.15.5 ^
-            --config-settings="--qmake=C:\Qt\5.15.2\msvc2019_64\bin\qmake.exe"
-          dir "%PYTHONPATH%\Lib\site-packages\PyQt5\Qt"
+          --config-settings="--qmake=C:\Qt\5.15.2\msvc2019_64\bin\qmake.exe"
+          dir C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQt5\Qt"
 
