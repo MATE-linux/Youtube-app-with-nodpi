@@ -32,114 +32,11 @@ jobs:
           choco install innosetup -y
           choco install upx -y
 
-      - name: Get Python and Qt paths
-        id: get_paths
-        shell: cmd
-        run: |
-          python -c "import sys; print(f'PYTHON_DIR={sys.prefix}')" >> %GITHUB_OUTPUT%
-          python -c "import PyQt5, os; print(f'QT_DIR={os.path.dirname(PyQt5.__file__)}')" >> %GITHUB_OUTPUT%
-          # Находим реальный путь к Qt
-          python -c "import os, PyQt5; qt_dir = os.path.dirname(PyQt5.__file__); print(f'QT_DIR={qt_dir}')" >> %GITHUB_ENV%
-      - name: Check disk space
-        run: df -h 
-      - name: List running processes
-        run: tasklist
+
         
-      - name: Compile with Nuitka
+      - name: Inspect PyQt5 directories
         shell: cmd
         run: |
-          # Получаем абсолютный путь к site-packages
-          python -c "import site; print(f'SITE_PACKAGES={site.getsitepackages()[0]}')" >> %GITHUB_ENV%
-          # Запуск Nuitka с явным указанием временного каталога
-          set TEMP=%GITHUB_WORKSPACE%\temp
-          mkdir %TEMP%
-          python -m nuitka ^
-          --standalone ^
-          --onefile ^
-          --windows-console-mode=disable ^
-          --output-dir=dist ^
-          --enable-plugin=pyqt5 ^
-          --windows-icon-from-ico=youunlock.ico ^
-          --include-qt-plugins=webengine ^
-          --include-package=PyQt5.QtWebEngineWidgets ^
-          --include-package=PyQt5.QtWebEngineCore ^
-          --include-data-dir="%SITE_PACKAGES%\PyQt5\Qt\plugins"="PyQt5/Qt/plugins" ^
-          --include-data-dir="%SITE_PACKAGES%\PyQt5\Qt\resources"="PyQt5/Qt/resources" ^
-          --include-data-dir="%SITE_PACKAGES%\PyQt5\Qt\translations"="PyQt5/Qt/translations" ^
-          --assume-yes-for-downloads ^
-          --noinclude-pytest-mode=nofollow ^
-          --noinclude-setuptools-mode=nofollow ^
-          --enable-plugin=upx ^
-          --nofollow-import-to=unnecessary_module ^
-          --jobs=2 ^
-          --lto=yes ^
-          --show-scons --show-progress ^
-          unlock.py
-
-      - name: Verify build
-        shell: cmd
-        run: |
-          if exist dist\unlock.exe (
-            echo "Build successful!"
-            dir dist
-          ) else (
-            echo "Build failed!"
-            exit 1
-          )
-
-      - name: Create installer script
-        shell: cmd  # Важно использовать cmd вместо powershell
-        run: |
-          (
-            echo [Setup]
-            echo AppName=Youtubedpi
-            echo AppVersion=1.0.1
-            echo SetupIconFile=youunlock.ico
-            echo DefaultDirName={pf}\Youtubedpi
-            echo DefaultGroupName=Youtubedpi
-            echo OutputDir=installer
-            echo OutputBaseFilename=Youtube-app-with-nodpi-setup-1.0.1
-            echo Compression=lzma
-            echo SolidCompression=yes
-            echo.
-            echo [Files]
-            echo Source: "dist\unlock.exe"; DestDir: "{app}"; Flags: ignoreversion
-            echo Source: "blacklist.txt"; DestDir: "{app}"
-            echo Source: "youtube.png"; DestDir: "{app}"
-            echo.
-            echo [Icons]
-            echo Name: "{group}\Youtubedpi"; Filename: "{app}\unlock.exe"
-          ) > installer.iss
-      - name: Build installer
-        shell: cmd  # Ключевое исправление - используем cmd
-        run: |
-          "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
-      
-      - name: Verify installer script
-        shell: cmd
-        run: |
-          type installer.iss
-
-      - name: Verify build
-        shell: cmd
-        run: |
-          if exist installer\Youtube-app-with-nodpi-setup-1.0.1.exe (
-            echo "Build successful!"
-            dir dist
-          ) else (
-            echo "Build failed!"
-            exit 1
-          )
-          
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: windows-build
-          path: dist\
-
-      - name: Upload artifact 2
-        uses: actions/upload-artifact@v4
-        with:
-          name: Youtube-app-with-nodpi-setup-1.0.1
-          path: installer\
+          python -c "import PyQt5, os; print(f'PyQt5 location: {os.path.dirname(PyQt5.__file__)}')"
+          tree "%PYTHONPATH%\Lib\site-packages\PyQt5" /F
 
