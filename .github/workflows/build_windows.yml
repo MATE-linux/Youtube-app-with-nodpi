@@ -45,7 +45,8 @@ jobs:
           --enable-plugin=pyqt5 ^
           --windows-icon-from-ico=youunlock.ico ^
           --include-qt-plugins=webengine ^
-          --include-package=PyQt5.QtWebEngine ^
+          --include-package=PyQt5.QtWebEngineWidgets ^
+          --include-package=PyQt5.QtWebEngineCore ^
           --assume-yes-for-downloads ^
           --noinclude-pytest-mode=nofollow ^
           --noinclude-setuptools-mode=nofollow ^
