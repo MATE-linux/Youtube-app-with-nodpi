@@ -28,6 +28,5 @@ jobs:
           pip uninstall -y PyQt5 PyQtWebEngine PyQt5-sip
           pip install PyQt5 PyQt5-Qt5 PyQtWebEngine
           dir C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQt5\Qt
-
-
+        
 
