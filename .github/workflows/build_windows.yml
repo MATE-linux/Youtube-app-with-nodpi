@@ -1,4 +1,4 @@
-name: Build Windows with Nuitka
+name: Build Windows installer with Nuitka
 
 on:
   push:
@@ -14,19 +14,113 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 1. Установка Python 3.8 (более стабильная версия для PyQt5)
-      - name: Set up Python 3.8
+      - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.8'
-          architecture: 'x64'
-          
-      - name: Install via official installer (fallback)
+
+      - name: Install dependencies
         shell: cmd
         run: |
+          pip install --upgrade nuitka
           pip install --upgrade pip setuptools wheel
           pip uninstall -y PyQt5 PyQtWebEngine PyQt5-sip
           pip install PyQt5 PyQt5-Qt5 PyQtWebEngine
           dir C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQt5\Qt5
+          choco install innosetup -y
+          choco install upx -y
+
+
+      - name: Compile with Nuitka
+        shell: cmd
+        run: |
+          # Запуск Nuitka с явным указанием временного каталога
+          set TEMP=%GITHUB_WORKSPACE%\temp
+          mkdir %TEMP%
+          python -m nuitka ^
+          --standalone ^
+          --onefile ^
+          --windows-console-mode=disable ^
+          --output-dir=dist ^
+          --enable-plugin=pyqt5 ^
+          --windows-icon-from-ico=youunlock.ico ^
+          --include-qt-plugins=webengine ^
+          --include-package=PyQt5.QtWebEngine ^
+          --assume-yes-for-downloads ^
+          --noinclude-pytest-mode=nofollow ^
+          --noinclude-setuptools-mode=nofollow ^
+          --enable-plugin=upx ^
+          --nofollow-import-to=unnecessary_module ^
+          --jobs=2 ^
+          --lto=yes ^
+          --show-scons --show-progress ^
+          unlock.py
+
+      - name: Verify build
+        shell: cmd
+        run: |
+          if exist dist\unlock.exe (
+            echo "Build successful!"
+            dir dist
+          ) else (
+            echo "Build failed!"
+            exit 1
+          )
+
+      - name: Create installer script
+        shell: cmd  # Важно использовать cmd вместо powershell
+        run: |
+          (
+            echo [Setup]
+            echo AppName=Youtubedpi
+            echo AppVersion=1.0.1
+            echo SetupIconFile=youunlock.ico
+            echo DefaultDirName={pf}\Youtubedpi
+            echo DefaultGroupName=Youtubedpi
+            echo OutputDir=installer
+            echo OutputBaseFilename=Youtube-app-with-nodpi-setup-1.0.1
+            echo Compression=lzma
+            echo SolidCompression=yes
+            echo.
+            echo [Files]
+            echo Source: "dist\unlock.exe"; DestDir: "{app}"; Flags: ignoreversion
+            echo Source: "blacklist.txt"; DestDir: "{app}"
+            echo Source: "youtube.png"; DestDir: "{app}"
+            echo.
+            echo [Icons]
+            echo Name: "{group}\Youtubedpi"; Filename: "{app}\unlock.exe"
+          ) > installer.iss
+      - name: Build installer
+        shell: cmd  # Ключевое исправление - используем cmd
+        run: |
+          "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" installer.iss
+
+      - name: Verify installer script
+        shell: cmd
+        run: |
+          type installer.iss
+
+      - name: Verify build
+        shell: cmd
+        run: |
+          if exist installer\Youtube-app-with-nodpi-setup-1.0.1.exe (
+            echo "Build successful!"
+            dir dist
+          ) else (
+            echo "Build failed!"
+            exit 1
+          )
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build
+          path: dist\
+
+      - name: Upload artifact 2
+        uses: actions/upload-artifact@v4
+        with:
+          name: Youtube-app-with-nodpi-setup-1.0.1
+          path: installer\
         
 
