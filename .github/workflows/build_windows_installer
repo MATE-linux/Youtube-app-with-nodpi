@@ -23,33 +23,17 @@ jobs:
         shell: cmd
         run: |
           pip install --upgrade nuitka
-          # Удаляем проблемные версии
-          pip uninstall -y PyQt5 PyQtWebEngine PyQt5-sip PyQt5-tools
-          # Ставим конкретные проверенные версии
-          pip install PyQt5==5.15.4 PyQtWebEngine==5.15.5
-          # Проверяем установку Qt
-          python -c "import os, PyQt5; qt_dir = os.path.join(os.path.dirname(PyQt5.__file__), 'Qt'); assert os.path.exists(os.path.join(qt_dir, 'bin')), 'Qt bin folder missing!'; print('Qt found at:', qt_dir)"
+          pip install --upgrade pip setuptools wheel
+          pip uninstall -y PyQt5 PyQtWebEngine PyQt5-sip
+          pip install PyQt5 PyQt5-Qt5 PyQtWebEngine
+          dir C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQt5\Qt5
           choco install innosetup -y
           choco install upx -y
 
-      - name: Get Python and Qt paths
-        id: get_paths
-        shell: cmd
-        run: |
-          python -c "import sys; print(f'PYTHON_DIR={sys.prefix}')" >> %GITHUB_OUTPUT%
-          python -c "import PyQt5, os; print(f'QT_DIR={os.path.dirname(PyQt5.__file__)}')" >> %GITHUB_OUTPUT%
-          # Находим реальный путь к Qt
-          python -c "import os, PyQt5; qt_dir = os.path.dirname(PyQt5.__file__); print(f'QT_DIR={qt_dir}')" >> %GITHUB_ENV%
-      - name: Check disk space
-        run: df -h 
-      - name: List running processes
-        run: tasklist
         
       - name: Compile with Nuitka
         shell: cmd
         run: |
-          # Получаем абсолютный путь к site-packages
-          python -c "import site; print(f'SITE_PACKAGES={site.getsitepackages()[0]}')" >> %GITHUB_ENV%
           # Запуск Nuitka с явным указанием временного каталога
           set TEMP=%GITHUB_WORKSPACE%\temp
           mkdir %TEMP%
@@ -61,11 +45,7 @@ jobs:
           --enable-plugin=pyqt5 ^
           --windows-icon-from-ico=youunlock.ico ^
           --include-qt-plugins=webengine ^
-          --include-package=PyQt5.QtWebEngineWidgets ^
-          --include-package=PyQt5.QtWebEngineCore ^
-          --include-data-dir="%SITE_PACKAGES%\PyQt5\Qt\plugins"="PyQt5/Qt/plugins" ^
-          --include-data-dir="%SITE_PACKAGES%\PyQt5\Qt\resources"="PyQt5/Qt/resources" ^
-          --include-data-dir="%SITE_PACKAGES%\PyQt5\Qt\translations"="PyQt5/Qt/translations" ^
+          --include-package=PyQt5.QtWebEngine ^
           --assume-yes-for-downloads ^
           --noinclude-pytest-mode=nofollow ^
           --noinclude-setuptools-mode=nofollow ^
