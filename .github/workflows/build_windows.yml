@@ -26,13 +26,8 @@ jobs:
         run: |
           pip install --upgrade pip setuptools wheel
           pip uninstall -y PyQt5 PyQtWebEngine PyQt5-sip
-          pip install PyQt5==5.15.4 PyQtWebEngine==5.15.5 ^
-          --only-binary=:all: ^
-          --find-links=https://download.lfd.uci.edu/pythonlibs/archived/ ^
-          --index-url https://pypi.org/simple/
-          dir C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQt5\Qt\.
-          dir C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQt5\Qt\..
-          dir C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQt5\Qt\qsci
+          pip install PyQt5 PyQt5-Qt5 PyQtWebEngine
+          dir C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQt5\Qt
 
 
 
