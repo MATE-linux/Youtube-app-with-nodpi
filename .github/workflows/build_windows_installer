@@ -1,4 +1,4 @@
-name: Build Windows with Nuitka
+name: Build Windows installer with Nuitka
 
 on:
   push:
