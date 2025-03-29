@@ -30,4 +30,4 @@ jobs:
           dir C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQt5\Qt5
       - name: test
         shell: cmd
-        run: tree C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages
+        run: tree C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQt5\bindings\QtWebEngine
