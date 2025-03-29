@@ -29,36 +29,9 @@ jobs:
           pip install PyQt5 PyQt5-Qt5 PyQtWebEngine
           dir C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQt5\Qt5
           
-      - name: Verify Qt installation paths
-        run: |
-          # Проверяем пути установки Qt
-          python -c "from PyQt5.QtCore import QLibraryInfo; print('Qt5 plugins path:', QLibraryInfo.location(QLibraryInfo.PluginsPath))"
-          python -c "from PyQt5.QtCore import QLibraryInfo; print('Qt5 prefix path:', QLibraryInfo.location(QLibraryInfo.PrefixPath))"
-
-      - name: Check PyQtWebEngine installation
-        run: |
-          # Создаем временный скрипт для проверки
-          $script = @"
-          try:
-              import PyQtWebEngine
-              from pathlib import Path
-              import sys
-            
-              print(f"Python path: {sys.path}")
-              print(f"PyQtWebEngine location: {Path(PyQtWebEngine.__file__).parent}")
-            
-              print("\nDirectory structure:")
-              webengine_path = Path(PyQtWebEngine.__file__).parent
-              for item in webengine_path.glob('*'):
-                  print(f"  {item.name}")
-                
-              # Проверка наличия QtWebEngine
-              from PyQt5.QtWebEngineWidgets import QWebEngineView
-              print("\nQtWebEngineWidgets available:", QWebEngineView is not None)
-          except Exception as e:
-              print(f"Error: {e}")
-              raise
-          "@
+      - name: test
+        shell: cmd
+        run: tree C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages
         
           # Сохраняем и выполняем скрипт
           $script | Out-File -FilePath check_webengine.py -Encoding utf8
