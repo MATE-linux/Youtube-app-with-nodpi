@@ -32,13 +32,17 @@ jobs:
       - name: Check PyQtWebEngine location
         run: |
           python -c "
-          import PyQtWebEngine
-          from pathlib import Path
-          
-          pyqtwebengine_path = Path(PyQtWebEngine.__file__).parent
-          print('PyQtWebEngine location:', pyqtwebengine_path)
-          
-          print('\nDirectory structure:')
-          for file in pyqtwebengine_path.rglob('*'):
-              print(file)
-          "
+            try:
+                import PyQtWebEngine
+                from pathlib import Path
+            
+                pyqtwebengine_path = Path(PyQtWebEngine.__file__).parent
+                print('PyQtWebEngine location:', pyqtwebengine_path)
+            
+            print('\nDirectory structure:')
+            for file in pyqtwebengine_path.rglob('*'):
+                print(file)
+            except Exception as e:
+                print('Error:', e)
+                raise
+            "
