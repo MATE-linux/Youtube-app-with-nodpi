@@ -28,5 +28,17 @@ jobs:
           pip uninstall -y PyQt5 PyQtWebEngine PyQt5-sip
           pip install PyQt5 PyQt5-Qt5 PyQtWebEngine
           dir C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQt5\Qt5
-          dir C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQtWebEngine\Qt
-          dir C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQtWebEngine\Qt\bin
+          
+      - name: Check PyQtWebEngine location
+        run: |
+          python -c "
+          import PyQtWebEngine
+          from pathlib import Path
+          
+          pyqtwebengine_path = Path(PyQtWebEngine.__file__).parent
+          print('PyQtWebEngine location:', pyqtwebengine_path)
+          
+          print('\nDirectory structure:')
+          for file in pyqtwebengine_path.rglob('*'):
+              print(file)
+          "
