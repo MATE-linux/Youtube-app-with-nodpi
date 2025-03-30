@@ -37,28 +37,7 @@ jobs:
           # Запуск Nuitka с явным указанием временного каталога
           set TEMP=%GITHUB_WORKSPACE%\temp
           mkdir %TEMP%
-          python -m nuitka ^
-          --standalone ^
-          --onefile ^
-          --windows-console-mode=disable ^
-          --output-dir=dist ^
-          --enable-plugin=pyqt5 ^
-          --windows-icon-from-ico=youunlock.ico ^
-          --include-package=PyQt5.QtWebEngineWidgets ^
-          --include-package=PyQt5.QtWebEngineCore ^
-          --include-data-dir=C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQt5\Qt5\bin="PyQt5/Qt5/bin" ^ 
-          --include-data-dir=C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQt5\Qt5\resources="PyQt5/Qt5/resources" ^ 
-          --include-data-dir=C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQt5\Qt5\translations="PyQt5/Qt5/translations" ^
-          --assume-yes-for-downloads ^
-          --noinclude-pytest-mode=nofollow ^
-          --noinclude-setuptools-mode=nofollow ^
-          --enable-plugin=upx ^
-          --nofollow-import-to=unnecessary_module ^
-          --jobs=2 ^
-          --lto=yes ^
-          --show-scons --show-progress ^
-          unlock.py
-
+          python -m nuitka --standalone --onefile --windows-console-mode=disable --output-dir=dist --enable-plugin=pyqt5 --windows-icon-from-ico=youunlock.ico --include-package=PyQt5.QtWebEngineWidgets --include-package=PyQt5.QtWebEngineCore --include-data-dir=C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQt5\Qt5\bin="PyQt5/Qt5/bin" --include-data-dir=C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQt5\Qt5\resources="PyQt5/Qt5/resources" --include-data-dir=C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQt5\Qt5\translations="PyQt5/Qt5/translations" --assume-yes-for-downloads --noinclude-pytest-mode=nofollow --noinclude-setuptools-mode=nofollow --enable-plugin=upx --nofollow-import-to=unnecessary_module --jobs=2 --lto=yes --show-scons --show-progress unlock.py
       - name: Verify build
         shell: cmd
         run: |
