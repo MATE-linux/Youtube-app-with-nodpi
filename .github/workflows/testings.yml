@@ -1,67 +1,56 @@
-name: Build Windows with Nuitka
 
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+name: Find QtWebEngineProcess
+
+on: [push, workflow_dispatch]
 
 jobs:
-  build-windows:
+  locate-webengine:
     runs-on: windows-latest
-
+    
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.8'
+        architecture: 'x64'
 
-      # 1. Установка Python 3.8 (более стабильная версия для PyQt5)
-      - name: Set up Python 3.8
-        uses: actions/setup-python@v4
-        with:
-          python-version: '3.8'
-          architecture: 'x64'
+    - name: Install via official installer (fallback)
+      shell: cmd
+      run: |
+        pip install --upgrade pip setuptools wheel
+        pip uninstall -y PyQt5 PyQtWebEngine PyQt5-sip
+         pip install PyQt5 PyQt5-Qt5 PyQtWebEngine
 
-      - name: Install via official installer (fallback)
-        shell: cmd
-        run: |
-          pip install --upgrade pip setuptools wheel
-          pip uninstall -y PyQt5 PyQtWebEngine PyQt5-sip
-          pip install PyQt5 PyQt5-Qt5 PyQtWebEngine
-      - name: test
-        shell: cmd
-        run: tree C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQt5\Qt5
-      - name: Find qtwebengineprocess.exe
-        run: |
-         python -c "
-         from PyQt5.QtWebEngineWidgets import QWebEngineView
-         from PyQt5.QtCore import QLibraryInfo
+    - name: Locate qtwebengineprocess.exe
+      shell: pwsh
+      run: |
+        $output = python -c "
+        import sys
+        sys.stdout.reconfigure(encoding='utf-8')
         
-         # Основной способ
-         webengine_path = QLibraryInfo.location(QLibraryInfo.BinariesPath) + '/qtwebengineprocess.exe'
-         print(f'[1] Основной путь: {webengine_path}')
+        from PyQt5.QtCore import QLibraryInfo
+        from PyQt5.QtWebEngineCore import QWebEngineProfile
+        import os
         
-         # Альтернативный способ
-         from PyQt5.QtWebEngineCore import QWebEngineProfile
-         print(f'[2] Альтернативный путь: {QWebEngineProfile.defaultProfile().persistentStoragePath()}')
+        # Основной путь
+        bin_path = QLibraryInfo.location(QLibraryInfo.BinariesPath)
+        webengine_path = os.path.join(bin_path, 'qtwebengineprocess.exe')
+        print('Основной путь:', webengine_path)
         
-         # Дополнительная проверка существования файла
-         import os
-         print(f'[3] Файл существует: {os.path.exists(webengine_path)}')
-         "
-
-      - name: Verify file existence
-        run: |
-         # Получаем путь из Python вывода
-         $output = python -c "from PyQt5.QtCore import QLibraryInfo; print(QLibraryInfo.location(QLibraryInfo.BinariesPath) + '/qtwebengineprocess.exe')"
-         echo "Полный путь: $output"
+        # Альтернативный путь
+        print('Альтернативный путь:', QWebEngineProfile.defaultProfile().persistentStoragePath())
         
-         # Проверяем существование файла
-         if (Test-Path $output) {
-           echo "Файл qtwebengineprocess.exe найден!"
-           dir $output
-         } else {
-           echo "Файл не найден!"
-           # Поиск по всему диску (если нужно)
-           echo "Поиск по всей системе..."
-           Get-ChildItem -Path C:\ -Recurse -Filter "qtwebengineprocess.exe" -ErrorAction SilentlyContinue | Select-Object FullName
-         }
+        # Проверка существования
+        print('Файл существует:', os.path.exists(webengine_path))
+        "
+        Write-Output $output
+        
+        # Дополнительная проверка
+        $path = $output | Select-String -Pattern 'Основной путь: (.*)' | ForEach-Object { $_.Matches.Groups[1].Value }
+        if (Test-Path $path) {
+            Write-Output "Файл найден: $path"
+            Get-Item $path | Format-List *
+        } else {
+            Write-Output "Файл не найден! Поиск по системе..."
+            Get-ChildItem -Path $env:pythonLocation -Recurse -Filter "qtwebengineprocess.exe" -ErrorAction SilentlyContinue | Select-Object FullName
+        }
