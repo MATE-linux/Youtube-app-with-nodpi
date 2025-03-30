@@ -21,36 +21,53 @@ jobs:
         pip uninstall -y PyQt5 PyQtWebEngine PyQt5-sip
          pip install PyQt5 PyQt5-Qt5 PyQtWebEngine
 
-    - name: Locate qtwebengineprocess.exe
+    - name: Find qtwebengineprocess.exe
       shell: pwsh
       run: |
-        $output = python -c "
+        # Получаем путь через Python
+        $pyCode = @"
         import sys
         sys.stdout.reconfigure(encoding='utf-8')
         
         from PyQt5.QtCore import QLibraryInfo
-        from PyQt5.QtWebEngineCore import QWebEngineProfile
         import os
         
-        # Основной путь
-        bin_path = QLibraryInfo.location(QLibraryInfo.BinariesPath)
-        webengine_path = os.path.join(bin_path, 'qtwebengineprocess.exe')
-        print('Основной путь:', webengine_path)
+        try:
+            # Основной способ
+            bin_path = QLibraryInfo.location(QLibraryInfo.BinariesPath)
+            webengine_path = os.path.join(bin_path, 'qtwebengineprocess.exe')
+            print(f'BIN_PATH|{webengine_path}')
+            print(f'EXISTS|{os.path.exists(webengine_path)}')
+            
+            # Альтернативный способ (если доступен)
+            try:
+                from PyQt5.QtWebEngineCore import QWebEngineProfile
+                print(f'PROFILE_PATH|{QWebEngineProfile.defaultProfile().persistentStoragePath()}')
+            except ImportError:
+                print('PROFILE_PATH|Not available')
+        except Exception as e:
+            print(f'ERROR|{str(e)}')
+        "@
         
-        # Альтернативный путь
-        print('Альтернативный путь:', QWebEngineProfile.defaultProfile().persistentStoragePath())
+        $output = python -c $pyCode
         
-        # Проверка существования
-        print('Файл существует:', os.path.exists(webengine_path))
-        "
-        Write-Output $output
+        # Парсим вывод
+        $binPath = $output | Where-Object { $_ -match 'BIN_PATH\|' } | ForEach-Object { $_.Split('|')[1] }
+        $exists = $output | Where-Object { $_ -match 'EXISTS\|' } | ForEach-Object { $_.Split('|')[1] }
         
-        # Дополнительная проверка
-        $path = $output | Select-String -Pattern 'Основной путь: (.*)' | ForEach-Object { $_.Matches.Groups[1].Value }
-        if (Test-Path $path) {
-            Write-Output "Файл найден: $path"
-            Get-Item $path | Format-List *
+        Write-Output "Основной путь: $binPath"
+        Write-Output "Файл существует: $exists"
+        
+        # Проверяем существование файла
+        if ($binPath -and (Test-Path $binPath)) {
+            Write-Output "Файл найден:"
+            Get-Item $binPath | Format-List *
         } else {
-            Write-Output "Файл не найден! Поиск по системе..."
-            Get-ChildItem -Path $env:pythonLocation -Recurse -Filter "qtwebengineprocess.exe" -ErrorAction SilentlyContinue | Select-Object FullName
+            Write-Output "Файл не найден по основному пути. Поиск в Python location..."
+            $found = Get-ChildItem -Path $env:pythonLocation -Recurse -Filter "qtwebengineprocess.exe" -ErrorAction SilentlyContinue
+            if ($found) {
+                $found | Select-Object FullName, Length, LastWriteTime | Format-List
+            } else {
+                Write-Output "Файл не найден в системе!"
+            }
         }
