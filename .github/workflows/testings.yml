@@ -30,3 +30,38 @@ jobs:
       - name: test
         shell: cmd
         run: tree C:\hostedtoolcache\windows\Python\3.8.10\x64\Lib\site-packages\PyQt5\Qt5
+      - name: Find qtwebengineprocess.exe
+        run: |
+         python -c "
+         from PyQt5.QtWebEngineWidgets import QWebEngineView
+         from PyQt5.QtCore import QLibraryInfo
+        
+         # Основной способ
+         webengine_path = QLibraryInfo.location(QLibraryInfo.BinariesPath) + '/qtwebengineprocess.exe'
+         print(f'[1] Основной путь: {webengine_path}')
+        
+         # Альтернативный способ
+         from PyQt5.QtWebEngineCore import QWebEngineProfile
+         print(f'[2] Альтернативный путь: {QWebEngineProfile.defaultProfile().persistentStoragePath()}')
+        
+         # Дополнительная проверка существования файла
+         import os
+         print(f'[3] Файл существует: {os.path.exists(webengine_path)}')
+         "
+
+      - name: Verify file existence
+        run: |
+         # Получаем путь из Python вывода
+         $output = python -c "from PyQt5.QtCore import QLibraryInfo; print(QLibraryInfo.location(QLibraryInfo.BinariesPath) + '/qtwebengineprocess.exe')"
+         echo "Полный путь: $output"
+        
+         # Проверяем существование файла
+         if (Test-Path $output) {
+           echo "Файл qtwebengineprocess.exe найден!"
+           dir $output
+         } else {
+           echo "Файл не найден!"
+           # Поиск по всему диску (если нужно)
+           echo "Поиск по всей системе..."
+           Get-ChildItem -Path C:\ -Recurse -Filter "qtwebengineprocess.exe" -ErrorAction SilentlyContinue | Select-Object FullName
+         }
